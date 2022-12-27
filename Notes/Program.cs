@@ -1,4 +1,9 @@
-﻿/* NOTES
+﻿using System.Linq.Expressions;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Runtime.InteropServices.ComTypes;
+/* NOTES
  * author: @Jesper-Andersson
  * license: Unlicense
  * 
@@ -29,8 +34,6 @@
  *      /rename <new title>
  *      /exit   (prompt "Want to save?: (Y/N)) 
 */
-using Microsoft.VisualBasic;
-using System.Runtime.CompilerServices;
 
 namespace Notes
 {
@@ -71,12 +74,40 @@ namespace Notes
         {
             Console.WriteLine("Please enter title for note: ");
             string noteTitle = Console.ReadLine();
-            string dateTime = DateTime.Now.ToString();
+            string[] text = new string[] {};
+            DateTime dateTime = DateTime.Now;
+
+            if (noteTitle == null)
+            {
+                noteTitle = "Untitled";   
+            }
 
             Console.Clear();
+            bool inputActive = true;
             
-            Console.WriteLine(noteTitle + "                                       " + dateTime);
-            Console.ReadLine();
+            //loop to get and save input and check for commands.
+            while (inputActive)
+            {
+                Console.WriteLine(noteTitle + "                                          " + dateTime.ToString());
+                string input = Console.ReadLine();
+                if (input.ElementAt(0) == '/')
+                {
+                    if (input.Contains("/save")){
+                        inputActive = false;
+                        Save(dateTime, noteTitle, text);
+                    }
+                    else 
+                    {
+                        text[text.Length] = input;
+                    }
+                }
+                else 
+                {
+                    text[text.Length] = input;
+                }
+
+            }
+            Overview();
         }
 
         static void Overview()
@@ -91,10 +122,19 @@ namespace Notes
         {
             if (Directory.EnumerateFiles(notesFolderName).Count() != 0)
             {
-
+                
             }
         }
-
-       
+        static void Save(DateTime dateTime, string title, string[] text)
+        {
+            // 31-12-2022-23:59|Title.txt
+            string noteFileName = $"{dateTime.Day}-{dateTime.Month}-{dateTime.Year}|{dateTime.Hour}:{dateTime.Minute}|{title}.txt";
+            string noteFilePath = notesFolderName + noteFileName;
+            
+            for (int i = 0; i < text.Length; i++)
+            {
+                File.AppendText(noteFilePath).WriteLine(text[i]);
+            }
+        }
     }
 }
